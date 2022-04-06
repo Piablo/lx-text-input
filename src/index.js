@@ -7,7 +7,7 @@ const TextInput = (props) => {
         error = ""
     } = props
 
-    const [value, setValue] = useState()
+    const [value, setValue] = useState("")
 
     return(
         <Container>
