@@ -1,19 +1,77 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 
 const TextInput = (props) => {
     const  {
         placeholder,
-        error = ""
+        onBlur = () => {},
+        validations = [],
+        incrementControlValidator = null,
     } = props
 
-    const [value, setValue] = useState("")
+    const [value, setValue] = useState()
+    const [errorMessage, setErrorMessage] = useState()
+
+    useEffect(() => {
+        if(incrementControlValidator){
+            runValidate()
+        }
+
+    }, [incrementControlValidator])
+
+    const runValidate = () => {
+        validate(value)
+    }
+   
+    function validate(value) { 
+        let response
+        for(let i = 0; i < validations.length; i++){
+            const validation = validations[i]
+            switch(validation){
+                case 'REQUIRED':
+                    if(!value){
+                        response = {
+                           success: false,
+                           value
+                        }   
+                        setErrorMessage("Cannot be blank." )
+                    }else{
+                        response = {
+                            success: true,
+                            value
+                        }  
+                        setErrorMessage("")
+                    }  
+                   break
+                case 'EMAIL':
+                    let regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+                    const testSuccess = regex.test(value)
+                    if(testSuccess){
+                        response = {
+                            success: true,
+                            value
+                        }  
+                        setErrorMessage("")
+                    }else{
+                        response = {
+                            success: false,
+                            value
+                        }  
+                        setErrorMessage("Valid email required.")
+                    }
+                    break
+                default:
+                    break
+           }
+        }
+        onBlur(response)
+    }
 
     return(
         <Container>
             <Placeholder>{placeholder}</Placeholder>
-            <Input value={value} onChange={(event) => setValue(event.target.value)}/>
-            <ErrorContainer>{error}</ErrorContainer>
+            <Input onChange={(event) => setValue(event.target.value)} onBlur={() => validate(value)}/>
+            <ErrorContainer>{errorMessage}</ErrorContainer>
         </Container>
     )
 }
@@ -33,7 +91,6 @@ const Input = styled.input`
     :focus {
         outline: none;
     }
-
 `
 const Placeholder = styled.div`
     background-color: white;
@@ -46,5 +103,4 @@ const ErrorContainer = styled.div`
     height: 10px;
     padding-left: 10px;
 `
-
 export default TextInput
